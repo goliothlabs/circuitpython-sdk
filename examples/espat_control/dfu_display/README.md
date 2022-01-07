@@ -6,6 +6,6 @@ For this sample, you need to change `boot.py` file to put the storage into Read/
 
 ### BOM
 
-- Raspiberry Pi Pico
+- Raspberry Pi Pico
 - ESP32 with AT Firmware
-- 160x128 TFT Display ST7735
+- 160x128 TFT Display ST7735R
