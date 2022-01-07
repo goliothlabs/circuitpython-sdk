@@ -151,11 +151,11 @@ class Client:
             join_path(LIGHTDB_STATE_PREFIX, path), payload)
 
     def delete_lightdb_state_at_path(self, path):
-        self.mqtt_client.publish(join_path(LIGHTDB_STREAM_PREFIX, path), "")
+        self.mqtt_client.publish(join_path(LIGHTDB_STATE_PREFIX, path), "")
 
     def send_lightdb_stream_at_path(self, path, payload):
         self.mqtt_client.publish(
-            join_path(LIGHTDB_STATE_PREFIX, path), payload)
+            join_path(LIGHTDB_STREAM_PREFIX, path), payload)
 
     def listen_desired_version(self):
         self.mqtt_client.subscribe(DFU_DESIRED_PREFIX)
