@@ -66,7 +66,7 @@ golioth_client.on_hello = on_hello
 print("Connecting to Golioth...")
 golioth_client.connect()
 
-last_check = time.monotonic()
+last_check = 0
 i = 1
 while True:
     try:
