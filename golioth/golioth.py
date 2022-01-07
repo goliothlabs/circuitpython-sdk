@@ -1,5 +1,5 @@
 import json
-import adafruit_minimqtt.adafruit_minimqtt as MQTT
+import golioth.adafruit_minimqtt_bytearray.adafruit_minimqtt as MQTT
 
 GOLIOTH_MQTT_HOST = "mqtt.golioth.io"
 GOLIOTH_MQTT_PORT = const(8883)
@@ -34,7 +34,6 @@ class Client:
             password=psk,
             client_id=psk_id,
         )
-        self._connected = False
 
         # callbacks
         self._on_hello = None
@@ -42,6 +41,8 @@ class Client:
         self._on_connect = None
         self._on_disconnect = None
         self._on_lightdb_message = None
+        self._on_desired_version_changed = None
+        self._on_download_artifact = None
 
         self.mqtt_client.on_connect = self._on_mqtt_connect
         self.mqtt_client.on_disconnect = self._on_mqtt_disconnect
@@ -51,7 +52,7 @@ class Client:
         self.mqtt_client.connect()
 
     def is_connected(self):
-        return self._connected
+        return self.mqtt_client.is_connected()
 
     @property
     def on_hello(self):
@@ -108,6 +109,28 @@ class Client:
     def on_lightdb_message(self, method):
         self._on_lightdb_message = method
 
+    @property
+    def on_desired_version_changed(self):
+        """Called when a new version is available.
+        Expected method signature is ``on_desired_version_changed(client, pkg, version, digest)``
+        """
+        return self._on_desired_version_changed
+
+    @on_desired_version_changed.setter
+    def on_desired_version_changed(self, method):
+        self._on_desired_version_changed = method
+
+    @property
+    def on_download_artifact(self):
+        """Called when a artifact is fetch and downloaded.
+        Expected method signature is ``on_download_artifact(client, pkg, version, payload)``
+        """
+        return self._on_desired_version_changed
+
+    @on_download_artifact.setter
+    def on_download_artifact(self, method):
+        self._on_download_artifact = method
+
     def listen_hello(self):
         self.mqtt_client.subscribe("/hello")
         self.loop()
@@ -133,6 +156,18 @@ class Client:
     def send_lightdb_stream_at_path(self, path, payload):
         self.mqtt_client.publish(
             join_path(LIGHTDB_STATE_PREFIX, path), payload)
+
+    def listen_desired_version(self):
+        self.mqtt_client.subscribe(DFU_DESIRED_PREFIX)
+        self.loop()
+
+    def download_artifact(self, package, version):
+        path = "/.u/c/" + package + "@" + version
+        if path in self.mqtt_client._subscribed_topics:
+            self.mqtt_client.unsubscribe(path)
+
+        self.mqtt_client.subscribe(path)
+        self.loop()
 
     def send_raw_log(self, level, value):
         payload = {}
@@ -161,13 +196,11 @@ class Client:
     def _on_mqtt_connect(self, client, userdata, flags, rc):
         # This function will be called when the client is connected
         # successfully to Golioth.
-        self._connected = True
         if self._on_connect is not None:
             self._on_connect(self)
 
     def _on_mqtt_disconnect(self, client, userdata, rc):
         # This method is called when the client is disconnected
-        self._connected = False
         if self._on_disconnect is not None:
             self._on_disconnect(self)
 
@@ -181,14 +214,29 @@ class Client:
             topic = "/" + topic
 
         if topic.startswith("/hello") and self._on_hello is not None:
-            self._on_hello(self, message)
+            self._on_hello(self, str(message, "utf-8"))
 
         if topic.startswith("/echo") and self._on_echo is not None:
-            self._on_echo(self, message)
+            self._on_echo(self, str(message, "utf-8"))
 
         if topic.startswith(LIGHTDB_STATE_PREFIX) and self._on_lightdb_message is not None:
             topic = topic.replace(LIGHTDB_STATE_PREFIX, "")
-            self._on_lightdb_message(self, topic, message)
+            self._on_lightdb_message(self, topic, str(message, "utf-8"))
+
+        if topic.startswith(DFU_DESIRED_PREFIX) and self._on_desired_version_changed is not None:
+            data = json.loads(str(message, "utf-8"))
+            if data is not None:
+                if "components" in data and data["components"] is not None:
+                    for c in data["components"]:
+                        self._on_desired_version_changed(
+                            self, c["package"], c["version"], c["hash"])
+
+        if topic.startswith("/.u/c") and self._on_download_artifact is not None:
+            path = topic.replace("/.u/c/", "")
+            at_index = path.index("@")
+            pkg = path[0:at_index]
+            version = path[at_index+1:]
+            self._on_download_artifact(self, pkg, version, message)
 
     def loop(self):
         self.mqtt_client.loop()
