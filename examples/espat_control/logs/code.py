@@ -72,7 +72,7 @@ while True:
     try:
         golioth_client.loop()
         now = time.monotonic()
-        if now - last_check > 1:
+        if now - last_check > 5:
             golioth_client.log_debug("Hello "+str(i))
             i = i + 1
             last_check = now

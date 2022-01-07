@@ -64,7 +64,7 @@ while True:
     try:
         golioth_client.loop()
         now = time.monotonic()
-        if now - last_check > 5:
+        if now - last_check > 60:
             golioth_client.send_lightdb_stream_at_path(
                 "/temp", microcontroller.cpu.temperature)
             last_check = now
