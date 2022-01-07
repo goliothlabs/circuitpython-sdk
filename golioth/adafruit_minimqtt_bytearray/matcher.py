@@ -1,4 +1,4 @@
-SPDX-FileCopyrightText: 2017 Yoch < https: // github.com/yoch >
+# SPDX-FileCopyrightText: 2017 Yoch < https: // github.com/yoch >
 #
 # SPDX-License-Identifier: EPL-1.0
 
