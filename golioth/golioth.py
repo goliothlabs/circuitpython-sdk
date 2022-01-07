@@ -33,6 +33,7 @@ class Client:
             username=psk_id,
             password=psk,
             client_id=psk_id,
+            use_binary=True,
         )
 
         # callbacks

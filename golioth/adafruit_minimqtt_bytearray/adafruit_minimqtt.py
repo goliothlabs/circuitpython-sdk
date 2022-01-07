@@ -118,6 +118,7 @@ class MQTT:
     :param int keep_alive: KeepAlive interval between the broker and the MiniMQTT client.
     :param socket socket_pool: A pool of socket resources available for the given radio.
     :param ssl_context: SSL context for long-lived SSL connections.
+    :param bool use_binary: Sets if message is passed as bytearray instead of string to callbacks
     """
 
     # pylint: disable=too-many-arguments,too-many-instance-attributes, not-callable, invalid-name, no-member
@@ -132,12 +133,14 @@ class MQTT:
         keep_alive=60,
         socket_pool=None,
         ssl_context=None,
+        use_binary=False
     ):
 
         self._socket_pool = socket_pool
         self._ssl_context = ssl_context
         self._sock = None
         self._backwards_compatible_sock = False
+        self._use_binary = use_binary
 
         self.keep_alive = keep_alive
         self._user_data = None
@@ -828,7 +831,8 @@ class MQTT:
             pid = pid[0] << 0x08 | pid[1]
             sz -= 0x02
         # read message contents
-        msg = self._sock_exact_recv(sz)
+        raw_msg = self._sock_exact_recv(sz)
+        msg = raw_msg if self._use_binary else str(raw_msg, "utf-8")
         self._handle_on_message(self, topic, msg)
         if res[0] & 0x06 == 0x02:
             pkt = bytearray(b"\x40\x02\0\0")
