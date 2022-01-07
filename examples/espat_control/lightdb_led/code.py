@@ -32,7 +32,6 @@ led1.direction = Direction.OUTPUT
 
 def connected(client):
     print("Connected to Golioth!")
-    client.listen_hello()
     client.listen_lightdb_state_at_path("/led/#")
 
 
@@ -40,11 +39,7 @@ def disconnected(client):
     print("Disconnected from Golioth!")
 
 
-def hello(client, message):
-    print(message)
-
-
-def message(client, path, message):
+def on_message(client, path, message):
     print("Change on lightdb path {0}: {1}".format(path, message))
     if path == "led/":
         data = json.loads(message)
@@ -73,8 +68,7 @@ Golioth.set_socket(socket, esp)
 golioth_client = Golioth.Client(secrets["psk_id"], secrets["psk"])
 golioth_client.on_connect = connected
 golioth_client.on_disconnect = disconnected
-golioth_client.on_hello = hello
-golioth_client.on_lightdb_message = message
+golioth_client.on_lightdb_message = on_message
 
 print("Connecting to Golioth...")
 golioth_client.connect()
