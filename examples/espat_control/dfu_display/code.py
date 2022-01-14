@@ -75,13 +75,14 @@ def message(client, path, message):
     print("Change on lightdb path {0}: {1}".format(path, message))
     if path == "led/":
         data = json.loads(message)
-        for k in data:
-            v = data[k]
-            print("found {0} -> {1}".format(k, v))
-            if k == "0":
-                led0.value = v
-            if k == "1":
-                led1.value = v
+        if data is not None:
+            for k in data:
+                v = data[k]
+                print("found {0} -> {1}".format(k, v))
+                if k == "0":
+                    led0.value = v
+                if k == "1":
+                    led1.value = v
 
 
 latest_image = ""
