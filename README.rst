@@ -14,6 +14,10 @@ This driver depends on:
 
 - `Adafruit CircuitPython MiniMQTT <https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT>`_
 
+.. code-block:: cfg
+
+    Ensure Adafruit CircuitPython MiniMQTT version is >= 5.2.0, which adds support for binary messages.
+
 Please ensure all dependencies are available on the CircuitPython filesystem.
 This is easily achieved by downloading
 `the Adafruit library and driver bundle <https://github.com/adafruit/Adafruit_CircuitPython_Bundle>`_.

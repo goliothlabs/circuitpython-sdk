@@ -1,5 +1,5 @@
 import json
-import golioth.adafruit_minimqtt_bytearray.adafruit_minimqtt as MQTT
+import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
 GOLIOTH_MQTT_HOST = "mqtt.golioth.io"
 GOLIOTH_MQTT_PORT = const(8883)
@@ -25,7 +25,7 @@ def set_socket(socket, interface):
 
 
 class Client:
-    def __init__(self, psk_id, psk):
+    def __init__(self, psk_id, psk, socket_pool=None, ssl_context=None):
         # Set up a MiniMQTT Client
         self.mqtt_client = MQTT.MQTT(
             broker=GOLIOTH_MQTT_HOST,
@@ -33,7 +33,9 @@ class Client:
             username=psk_id,
             password=psk,
             client_id=psk_id,
-            use_binary=True,
+            use_binary_mode=True,
+            socket_pool=socket_pool,
+            ssl_context=ssl_context,
         )
 
         # callbacks
